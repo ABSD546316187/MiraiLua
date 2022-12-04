@@ -8,7 +8,8 @@ MiraiLua是基于 [Mirai.Net](https://github.com/SinoAHpx/Mirai.Net) / [mirai-ap
   - `Address` 是 [mirai-api-http](https://github.com/project-mirai/mirai-api-http) 中配置的地址
   - `QQ` 是 [mirai](https://github.com/mamoe/mirai) 中配置的QQ号
   - `Key` 是 [mirai-api-http](https://github.com/project-mirai/mirai-api-http) 中配置的 `VerifyKey` (如果存在)
-  
+- 配置 `plugins/basic/init.lua` 第2行 `enableQ` 为启用的群列表
+ 
 ## 部分API
 
 本框架处于开发初期，以下列出已经开发好的api
