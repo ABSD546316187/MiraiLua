@@ -1,5 +1,5 @@
 Qmsgt = {}
-local enableQ = {"790671785","616319393"}
+local enableQ = {""}
 
 function isValidQ(n)
 	for _,v in pairs(enableQ) do
