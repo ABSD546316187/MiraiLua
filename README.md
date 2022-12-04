@@ -11,14 +11,14 @@ MiraiLua是基于 [Mirai.Net] / [mirai-api-http] 编写的以Lua为脚本引擎�
 #部分API
 本框架处于开发初期，以下列出已经开发好的api
 ```lua
-void api.Reload()                                       //重载插件
-void api.SendGroupMsg(string GroupID, string text)      //发送群组消息
-void api.SendGroupMsgEX(string GroupID, ...)            //发送群组消息，后面为可变参数，可解析上传图片等高级接口返回的table
-void api.OnReceiveGroup(table data)                     //接收到消息后由C#调用，结构见下文
-string api.HttpGet(string url)                          //调用Http Api(GET)
+void api.Reload()                                       --重载插件
+void api.SendGroupMsg(string GroupID, string text)      --发送群组消息
+void api.SendGroupMsgEX(string GroupID, ...)            --发送群组消息，后面为可变参数，可解析上传图片等高级接口返回的table
+void api.OnReceiveGroup(table data)                     --接收到消息后由C#调用，结构见下文
+string api.HttpGet(string url)                          --调用Http Api(GET)
 
-table api.UploadImg(string path)                        //上传本地图片，返回格式化表
-table api.At(string qq)                                 //艾特，返回格式化表
+table api.UploadImg(string path)                        --上传本地图片，返回格式化表
+table api.At(string qq)                                 --艾特，返回格式化表
 ```
 - 示例
 ```lua
