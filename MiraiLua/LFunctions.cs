@@ -84,7 +84,7 @@ namespace MiraiLua
                     lua.PushCopy(-2);
                     if (lua.Type(-1) == LuaType.String && lua.Type(-2) == LuaType.String)
                     {
-                        if (hs.TryGetValue(lua.ToString(-1),out string v))
+                        if (hs.TryGetValue(lua.ToString(-1),out _))
                             hs[lua.ToString(-1)] = lua.ToString(-2);
                         else
                             hs.Add(lua.ToString(-1), lua.ToString(-2));
@@ -141,7 +141,10 @@ namespace MiraiLua
                 {
                     lua.PushCopy(-2);
                     if (lua.Type(-1) == LuaType.String && lua.Type(-2) == LuaType.String)
-                        hs.Add(lua.ToString(-1), lua.ToString(-2));
+                        if (hs.TryGetValue(lua.ToString(-1), out _))
+                            hs[lua.ToString(-1)] = lua.ToString(-2);
+                        else
+                            hs.Add(lua.ToString(-1), lua.ToString(-2));
 
                     lua.Pop(2);
                 }
