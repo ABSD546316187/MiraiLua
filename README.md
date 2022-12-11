@@ -18,7 +18,20 @@ void api.Reload()                                       --重载插件
 void api.SendGroupMsg(string GroupID, string text)      --发送群组消息
 void api.SendGroupMsgEX(string GroupID, ...)            --发送群组消息，后面为可变参数，可解析上传图片等高级接口返回的table
 void api.OnReceiveGroup(table data)                     --接收到消息后由C#调用，结构见下文
-string api.HttpGet(string url)                          --调用Http Api(GET)
+void api.HttpGet(										--调用Http Api(GET)
+	string url,
+	function onSuccess,
+	function onFailure,
+	table headers = {["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:107.0) Gecko/20100101 Firefox/107.0"}
+)
+
+void api.HttpPost(										--调用Http Api(POST)
+	string url,
+	function onSuccess,
+	function onFailure,
+	table params = {},
+	table headers = {["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:107.0) Gecko/20100101 Firefox/107.0"}
+)
 
 table api.UploadImg(string path)                        --上传本地图片，返回格式化表
 table api.At(string qq)                                 --艾特，返回格式化表
@@ -26,7 +39,7 @@ table api.At(string qq)                                 --艾特，返回格式�
 - 示例
 ```lua
 function api.OnReceiveGroup(data)
-	PrintTable(data)
+	PrintTable(data)--接收到消息后，将会打印出data的结构。
 end
 ```
 当有人说话，你会得到类似的输出：
@@ -58,6 +71,37 @@ Log output date: 2022-12-04 18:03:53
     GroupName = "xxx",
     SenderName = "xxx",
     GroupID = "xxx",
+```
+- GET示例
+```lua
+api.HttpGet("https://api.bilibili.com/x/space/acc/info?mid=114514",function(data)
+	print(data)
+end,function(msg)
+	print(msg)
+end)
+```
+该函数访问b站的api，如果成功则输出"data"的内容，如果失败则输出错误信息"msg"。你也可以不写怎么处理，但必须给2个function类型的变量。
+- POST示例
+```lua
+api.HttpGet("https://api.ownthink.com/bot",function(data)
+	print(data)
+end,function(msg)
+	print(msg)
+end,{
+	spoken = "hello"
+})
+```
+你会得到类似的输出：
+```JSON
+{
+    "message": "success",
+    "data": {
+        "type": 5000,
+        "info": {
+            "text": "是一个问候的单词"
+        }
+    }
+}
 ```
 
 ## 注意
