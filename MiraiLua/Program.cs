@@ -9,8 +9,6 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Xml;
-using Mirai.Net.Data.Messages;
-using Flurl.Http;
 
 namespace MiraiLua
 {

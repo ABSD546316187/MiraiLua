@@ -12,7 +12,6 @@ namespace MiraiLua
         /// <summary>
         /// 键值结构体
         /// </summary>
-        public struct KV {public string k;public string v; }
 
         /// <summary>
         /// HTTP GET
@@ -22,14 +21,12 @@ namespace MiraiLua
         /// <param name="k2">onFaildFunctionID</param>
         /// <param name="l">Lua Ptr</param>
         /// <param name="head">Head List</param>
-        public static async void GetAsync(string u, string k1, string k2, IntPtr l, List<KV> head)
+        public static async void GetAsync(string u, string k1, string k2, IntPtr l, Dictionary<string,string> head)
         {
             try
             {
-                foreach (KV s in head)
-                    u.WithHeader(s.k, s.v);
-
                 var re = await u
+                .WithHeaders(head)
                 .GetStringAsync();
                 lock (Program.o)
                 {
@@ -70,19 +67,11 @@ namespace MiraiLua
         /// <param name="l">Lua Ptr</param>
         /// <param name="param">Params</param>
         /// <param name="head">Head List</param>
-        public static async void PostAsync(string u, string k1, string k2, IntPtr l, List<KV> param, List<KV> head)
+        public static async void PostAsync(string u, string k1, string k2, IntPtr l, Dictionary<string, string> param, Dictionary<string, string> head)
         {
             try
             {
-                foreach (KV s in head)
-                    u.WithHeader(s.k, s.v);
-
-                var ps = new Dictionary<string, string>();
-
-                foreach (KV s in param)
-                    ps.Add(s.k,s.v);
-
-                var re = await u.PostJsonAsync(ps).ReceiveString();
+                var re = await u.WithHeaders(head).PostJsonAsync(param).ReceiveString();
 
                 lock (Program.o)
                 {

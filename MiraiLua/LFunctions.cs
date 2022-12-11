@@ -1,14 +1,8 @@
 ﻿using System;
-using System.Text;
 using KeraLua;
 using Mirai.Net.Sessions.Http.Managers;
-using System.IO;
-using System.Net;
-using System.Threading.Tasks;
 using Mirai.Net.Data.Messages.Concretes;
-using System.Runtime.InteropServices;
 using Mirai.Net.Data.Messages;
-using Flurl.Http;
 using System.Collections.Generic;
 
 namespace MiraiLua
@@ -65,7 +59,7 @@ namespace MiraiLua
         static public int HttpGetA(IntPtr p)
         {
             Lua lua = Lua.FromIntPtr(p);
-            var hs = new List<HttpRequest.KV>();
+            var hs = new Dictionary<string, string>();
             string u = lua.CheckString(1);
 
             lua.CheckType(2, LuaType.Function);
@@ -79,7 +73,7 @@ namespace MiraiLua
             lua.PushCopy(3);
             lua.SetGlobal(k2);
 
-            hs.Add(new HttpRequest.KV() { k = "User-Agent", v = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:107.0) Gecko/20100101 Firefox/107.0" });
+            hs.Add("User-Agent","Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:107.0) Gecko/20100101 Firefox/107.0" );
 
             if (lua.Type(4) == LuaType.Table)
             {
@@ -89,7 +83,12 @@ namespace MiraiLua
                 {
                     lua.PushCopy(-2);
                     if (lua.Type(-1) == LuaType.String && lua.Type(-2) == LuaType.String)
-                        hs.Add(new HttpRequest.KV() { k = lua.ToString(-1), v = lua.ToString(-2)});
+                    {
+                        if (hs.TryGetValue(lua.ToString(-1),out string v))
+                            hs[lua.ToString(-1)] = lua.ToString(-2);
+                        else
+                            hs.Add(lua.ToString(-1), lua.ToString(-2));
+                    }
                     
                     lua.Pop(2);
                 }
@@ -103,8 +102,8 @@ namespace MiraiLua
         static public int HttpPostA(IntPtr p)
         {
             Lua lua = Lua.FromIntPtr(p);
-            var hs = new List<HttpRequest.KV>();
-            var pa = new List<HttpRequest.KV>();
+            var hs = new Dictionary<string, string>();
+            var pa = new Dictionary<string, string>();
             string u = lua.CheckString(1);
 
             lua.CheckType(2, LuaType.Function);
@@ -118,7 +117,7 @@ namespace MiraiLua
             lua.PushCopy(3);
             lua.SetGlobal(k2);
 
-            hs.Add(new HttpRequest.KV() { k = "User-Agent", v = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:107.0) Gecko/20100101 Firefox/107.0" });
+            hs.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:107.0) Gecko/20100101 Firefox/107.0");
 
             if (lua.Type(4) == LuaType.Table)
             {
@@ -128,7 +127,7 @@ namespace MiraiLua
                 {
                     lua.PushCopy(-2);
                     if (lua.Type(-1) == LuaType.String && lua.Type(-2) == LuaType.String)
-                        pa.Add(new HttpRequest.KV() { k = lua.ToString(-1), v = lua.ToString(-2) });
+                        pa.Add(lua.ToString(-1), lua.ToString(-2));
                     lua.Pop(2);
                 }
                 lua.Pop(1);
@@ -142,7 +141,7 @@ namespace MiraiLua
                 {
                     lua.PushCopy(-2);
                     if (lua.Type(-1) == LuaType.String && lua.Type(-2) == LuaType.String)
-                        hs.Add(new HttpRequest.KV() { k = lua.ToString(-1), v = lua.ToString(-2) });
+                        hs.Add(lua.ToString(-1), lua.ToString(-2));
 
                     lua.Pop(2);
                 }
