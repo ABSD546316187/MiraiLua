@@ -18,14 +18,14 @@ void api.Reload()                                       --重载插件
 void api.SendGroupMsg(string GroupID, string text)      --发送群组消息
 void api.SendGroupMsgEX(string GroupID, ...)            --发送群组消息，后面为可变参数，可解析上传图片等高级接口返回的table
 void api.OnReceiveGroup(table data)                     --接收到消息后由C#调用，结构见下文
-void api.HttpGet(										--调用Http Api(GET)
+void api.HttpGet(                                       --调用Http Api(GET)
 	string url,
 	function onSuccess,
 	function onFailure,
 	table headers = {["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:107.0) Gecko/20100101 Firefox/107.0"}
 )
 
-void api.HttpPost(										--调用Http Api(POST)
+void api.HttpPost(                                      --调用Http Api(POST)
 	string url,
 	function onSuccess,
 	function onFailure,
