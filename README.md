@@ -74,22 +74,29 @@ Log output date: 2022-12-04 18:03:53
 ```
 - GET示例
 ```lua
-api.HttpGet("https://api.bilibili.com/x/space/acc/info?mid=114514",function(data)
-	print(data)
-end,function(msg)
-	print(msg)
-end)
+api.HttpGet("https://api.bilibili.com/x/space/acc/info?mid=114514",
+	function(data)
+		print(data)
+	end,
+	function(msg)
+		print(msg)
+	end
+)
 ```
 该函数访问b站的api，如果成功则输出"data"的内容，如果失败则输出错误信息"msg"。你也可以不写怎么处理，但必须给2个function类型的变量。
 - POST示例
 ```lua
-api.HttpGet("https://api.ownthink.com/bot",function(data)
-	print(data)
-end,function(msg)
-	print(msg)
-end,{
-	spoken = "hello"
-})
+api.HttpPost("https://api.ownthink.com/bot",
+	function(data)
+		print(data)
+	end,
+	function(msg)
+		print(msg)
+	end,
+	{
+		spoken = "hello"
+	}
+)
 ```
 你会得到类似的输出：
 ```JSON
