@@ -39,7 +39,7 @@ table api.At(string qq)                                 --艾特，返回格式�
 ```
 ### Global
 ```lua
-void include(string path)                               --加载文件，该函数只能用于加载插件的时候调用
+void include(string path)                               --加载文件，该函数只能在加载插件的时候调用
 string GetDir()                                         --获取当前脚本的运行目录，已自带"\"
 ByteArray ByteArray(table data = {})                    --创建一个字节数组
 ByteArray LoadFile(string path)                         --读入文件，返回字节数组。失败返回长度为0的ByteArray并附加一个错误信息
@@ -64,8 +64,8 @@ number ByteArray:ReadFloat()                            --读取float(4字节)�
 number ByteArray:ReadDouble()                           --读取double(8字节)并返回长度
 string,number ByteArray:ReadString()                    --读取string并返回长度（不计字符串最后的"0"字节）
 
-void ByteArray:Add(ByteArray ba)                        --与另一个ByteArray相加，ba将会加在其末尾
-void ByteArray:SetData(table data)                      --通过一个table设置该字节数组的数据
+void ByteArray:Add(ByteArray ba)                        --与另一个ByteArray相加，ba将会加在其末尾，也可以使用"+"运算符
+void ByteArray:SetData(table data)                      --通过一个table设置该字节数组的数据，也可以使用ByteArray.data = xxx
 table ByteArray:GetData()                               --将该字节数组的数据转换成table，也可以使用ByteArray.data
 ```
 - 示例
@@ -172,7 +172,7 @@ print(ba3:ReadInt(26+l+1))
 print(ba,ba1,ba2,ba3)
 
 local ba,e=LoadFile(GetDir() .. "t.txt")	--t.txt的内容为"你说得对，但是《原神》..."
-if #ba.data == 0 then
+if #ba.data == 0 then	--失败输出错误信息
 	print(e)
 else
 	print(ba:ReadString(1))
