@@ -9,6 +9,8 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Xml;
+using System.Runtime.InteropServices;
+using MiraiLua.Classes;
 
 namespace MiraiLua
 {
@@ -18,6 +20,8 @@ namespace MiraiLua
         static public Lua lua = new Lua();
         static public MiraiBot bot;
         static public object o = new object();
+        static public string curFileDir { get; set; }
+        static public char g = Path.DirectorySeparatorChar;
         static void Test()
         {
             lua.GetGlobal("test");
@@ -29,8 +33,11 @@ namespace MiraiLua
 
         static void FileChanged(object sender, FileSystemEventArgs e)
         {
+            if (e.Name.IndexOf(".lua") == -1)
+                return;
             Thread.Sleep(10);
             Util.Print("文件更新..." + e.FullPath);
+            curFileDir = e.FullPath.Replace(g + e.Name,"").Replace($".{g}plugins{g}","");
             lock (o)
             {
                 if (lua.DoFile(e.FullPath))
@@ -38,43 +45,48 @@ namespace MiraiLua
                     Util.Print(lua.ToString(-1), Util.PrintType.ERROR, ConsoleColor.Red);
                     lua.Pop(1);
                 }
+                curFileDir = "";
             }
         }
 
         static public void LoadPlugins()
         {
-            if (!Directory.Exists(@".\plugins"))
-                Directory.CreateDirectory(@".\plugins");
+            if (!Directory.Exists($".{g}plugins"))
+                Directory.CreateDirectory($".{g}plugins");
             else
             {
-                DirectoryInfo dir = new DirectoryInfo(@".\plugins");
+                DirectoryInfo dir = new DirectoryInfo($".{g}plugins");
                 DirectoryInfo[] ds = dir.GetDirectories();
 
                 foreach (DirectoryInfo d in ds)
                 {
                     FileSystemWatcher watcher = new FileSystemWatcher();
                     watcher.Changed += new FileSystemEventHandler(FileChanged);
-                    watcher.Path = @".\plugins\" + d.Name;
+                    watcher.Path = $".{g}plugins{g}" + d.Name;
                     watcher.EnableRaisingEvents = true;
+
+                    curFileDir = d.Name;
 
                     FileInfo[] fs = d.GetFiles();
                     //lua.DoFile(f.FullName);
                     foreach (FileInfo f in fs)
                     {
-                        if (f.Extension == ".lua")
+                        if (f.Name == "init.lua")
                         {
-                            Util.Print("加载插件..." + d.Name + "\\" + f.Name);
+                            Util.Print("加载插件..." + d.Name + g + f.Name);
 
-                            if (lua.DoFile(@".\plugins\" + d.Name + "\\" + f.Name))
+                            if (lua.DoFile($".{g}plugins{g}" + d.Name + g + f.Name))
                             {
                                 Util.Print(lua.ToString(-1), Util.PrintType.ERROR, ConsoleColor.Red);
                                 lua.Pop(1);
                             }
                         }
                     }
+                    curFileDir = "";
                 }
             }
         }
+
         static int Main(string[] args)
         {
             Console.ForegroundColor = ConsoleColor.Green;
@@ -86,6 +98,11 @@ namespace MiraiLua
             lua.Encoding = Encoding.UTF8;
 
             lua.Register("print",LFunctions.Print);
+            lua.Register("include", LFunctions.include);
+            lua.Register("GetDir", LFunctions.GetDir);
+            lua.Register("ByteArray", ByteArray.New);
+            lua.Register("LoadFile", ByteArray.LoadFile);
+            lua.Register("SaveFile", ByteArray.SaveFile);
 
             lua.NewTable();
             lua.SetGlobal("api");
@@ -97,7 +114,9 @@ namespace MiraiLua
             Util.PushFunction("api", "HttpPost", lua, LFunctions.HttpPostA);
             Util.PushFunction("api", "UploadImg", lua, LFunctions.UploadImg);
             Util.PushFunction("api", "At", lua, LFunctions.At);
+
             lua.Pop(lua.GetTop());
+
             //加载脚本
             LoadPlugins();
             //////////////////////////////////////

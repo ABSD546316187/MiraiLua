@@ -25,6 +25,47 @@ namespace MiraiLua
 
             return 0;
         }
+        static public int include(IntPtr p)
+        {
+            Lua lua = Lua.FromIntPtr(p);
+            char g = Program.g;
+            if (Program.curFileDir != "")
+            {
+                string s = lua.CheckString(1);
+
+                s = s.Replace(".lua", "");
+
+                Util.Print("加载插件..." + Program.curFileDir + g + s + ".lua");
+                if (lua.DoFile($".{g}plugins{g}" + Program.curFileDir + g + s + ".lua"))
+                {
+                    Util.Print(lua.ToString(-1), Util.PrintType.ERROR, ConsoleColor.Red);
+                    lua.Pop(1);
+                }
+            }
+            else
+            {
+                lua.Traceback(lua,1);
+                lua.PushString("请勿在加载完毕后调用include\n" + lua.ToString(-1));
+                lua.Error();
+            }
+            return 0;
+        }
+
+        static public int GetDir(IntPtr p)
+        {
+            Lua lua = Lua.FromIntPtr(p);
+            char g = Program.g;
+
+            lua.GetGlobal("debug");
+            lua.GetField(-1, "getinfo");
+            lua.PushNumber(2);
+            lua.Call(1, 1);
+            lua.GetField(-1, "short_src");
+            string s = lua.CheckString(-1);
+            s = $"plugins{g}{Util.GetMiddleStr(s, $".{g}plugins{g}", g.ToString())}{g}";
+            lua.PushString(s);
+            return 1;
+        }
         static public int Reload(IntPtr p)
         {
             Program.LoadPlugins();

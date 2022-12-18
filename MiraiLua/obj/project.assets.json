@@ -1,14 +1,18 @@
 {
   "version": 3,
   "targets": {
-    ".NETCoreApp,Version=v3.1": {
+    "net7.0": {
       "Flurl/3.0.6": {
         "type": "package",
         "compile": {
-          "lib/netstandard2.0/Flurl.dll": {}
+          "lib/netstandard2.0/Flurl.dll": {
+            "related": ".xml"
+          }
         },
         "runtime": {
-          "lib/netstandard2.0/Flurl.dll": {}
+          "lib/netstandard2.0/Flurl.dll": {
+            "related": ".xml"
+          }
         }
       },
       "Flurl.Http/3.2.4": {
@@ -19,19 +23,27 @@
           "System.Text.Encoding.CodePages": "4.5.1"
         },
         "compile": {
-          "lib/netstandard2.0/Flurl.Http.dll": {}
+          "lib/netstandard2.0/Flurl.Http.dll": {
+            "related": ".xml"
+          }
         },
         "runtime": {
-          "lib/netstandard2.0/Flurl.Http.dll": {}
+          "lib/netstandard2.0/Flurl.Http.dll": {
+            "related": ".xml"
+          }
         }
       },
       "KeraLua/1.3.3": {
         "type": "package",
         "compile": {
-          "lib/netstandard2.0/KeraLua.dll": {}
+          "lib/net6.0/KeraLua.dll": {
+            "related": ".xml"
+          }
         },
         "runtime": {
-          "lib/netstandard2.0/KeraLua.dll": {}
+          "lib/net6.0/KeraLua.dll": {
+            "related": ".xml"
+          }
         },
         "runtimeTargets": {
           "runtimes/android-arm/native/liblua54.so": {
@@ -106,10 +118,14 @@
           "Newtonsoft.Json": "13.0.1"
         },
         "compile": {
-          "lib/netstandard2.0/Manganese.dll": {}
+          "lib/net6.0/Manganese.dll": {
+            "related": ".xml"
+          }
         },
         "runtime": {
-          "lib/netstandard2.0/Manganese.dll": {}
+          "lib/net6.0/Manganese.dll": {
+            "related": ".xml"
+          }
         }
       },
       "Microsoft.NETCore.Platforms/2.1.2": {
@@ -130,19 +146,27 @@
           "Websocket.Client": "4.4.43"
         },
         "compile": {
-          "lib/netstandard2.0/Mirai.Net.dll": {}
+          "lib/netstandard2.0/Mirai.Net.dll": {
+            "related": ".xml"
+          }
         },
         "runtime": {
-          "lib/netstandard2.0/Mirai.Net.dll": {}
+          "lib/netstandard2.0/Mirai.Net.dll": {
+            "related": ".xml"
+          }
         }
       },
       "Newtonsoft.Json/13.0.1": {
         "type": "package",
         "compile": {
-          "lib/netstandard2.0/Newtonsoft.Json.dll": {}
+          "lib/netstandard2.0/Newtonsoft.Json.dll": {
+            "related": ".xml"
+          }
         },
         "runtime": {
-          "lib/netstandard2.0/Newtonsoft.Json.dll": {}
+          "lib/netstandard2.0/Newtonsoft.Json.dll": {
+            "related": ".xml"
+          }
         }
       },
       "System.Reactive/4.3.2": {
@@ -160,10 +184,14 @@
       "System.Runtime.CompilerServices.Unsafe/4.5.2": {
         "type": "package",
         "compile": {
-          "ref/netstandard2.0/System.Runtime.CompilerServices.Unsafe.dll": {}
+          "ref/netstandard2.0/System.Runtime.CompilerServices.Unsafe.dll": {
+            "related": ".xml"
+          }
         },
         "runtime": {
-          "lib/netcoreapp2.0/System.Runtime.CompilerServices.Unsafe.dll": {}
+          "lib/netcoreapp2.0/System.Runtime.CompilerServices.Unsafe.dll": {
+            "related": ".xml"
+          }
         }
       },
       "System.Text.Encoding.CodePages/4.5.1": {
@@ -188,10 +216,14 @@
       "System.Threading.Channels/4.7.0": {
         "type": "package",
         "compile": {
-          "lib/netcoreapp3.0/System.Threading.Channels.dll": {}
+          "lib/netcoreapp3.0/System.Threading.Channels.dll": {
+            "related": ".xml"
+          }
         },
         "runtime": {
-          "lib/netcoreapp3.0/System.Threading.Channels.dll": {}
+          "lib/netcoreapp3.0/System.Threading.Channels.dll": {
+            "related": ".xml"
+          }
         }
       },
       "Websocket.Client/4.4.43": {
@@ -201,10 +233,14 @@
           "System.Threading.Channels": "4.7.0"
         },
         "compile": {
-          "lib/netstandard2.1/Websocket.Client.dll": {}
+          "lib/net6.0/Websocket.Client.dll": {
+            "related": ".xml"
+          }
         },
         "runtime": {
-          "lib/netstandard2.1/Websocket.Client.dll": {}
+          "lib/net6.0/Websocket.Client.dll": {
+            "related": ".xml"
+          }
         }
       }
     }
@@ -507,7 +543,7 @@
     }
   },
   "projectFileDependencyGroups": {
-    ".NETCoreApp,Version=v3.1": [
+    "net7.0": [
       "KeraLua >= 1.3.3",
       "Mirai.Net >= 2.4.8"
     ]
@@ -529,15 +565,15 @@
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
-        "netcoreapp3.1"
+        "net7.0"
       ],
       "sources": {
         "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
-        "netcoreapp3.1": {
-          "targetAlias": "netcoreapp3.1",
+        "net7.0": {
+          "targetAlias": "net7.0",
           "projectReferences": {}
         }
       },
@@ -548,8 +584,8 @@
       }
     },
     "frameworks": {
-      "netcoreapp3.1": {
-        "targetAlias": "netcoreapp3.1",
+      "net7.0": {
+        "targetAlias": "net7.0",
         "dependencies": {
           "KeraLua": {
             "target": "Package",
@@ -566,7 +602,8 @@
           "net47",
           "net471",
           "net472",
-          "net48"
+          "net48",
+          "net481"
         ],
         "assetTargetFallback": true,
         "warn": true,
@@ -575,7 +612,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.414\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.101\\RuntimeIdentifierGraph.json"
       }
     }
   }

@@ -46,5 +46,19 @@ namespace MiraiLua
             lua.PushCFunction(f);
             lua.SetField(1, name);
         }
+
+        /// <summary>
+        /// 取中间文本 + static string GetMiddleStr(string oldStr,string preStr,string nextStr)
+        /// </summary>
+        /// <param name="oldStr">原文</param>
+        /// <param name="preStr">前文</param>
+        /// <param name="nextStr">后文</param>
+        /// <returns></returns>
+        public static string GetMiddleStr(string oldStr, string preStr, string nextStr)
+        {
+            string tempStr = oldStr.Substring(oldStr.IndexOf(preStr) + preStr.Length);
+            tempStr = tempStr.Substring(0, tempStr.IndexOf(nextStr));
+            return tempStr;
+        }
     }
 }
