@@ -69,20 +69,6 @@ namespace MiraiLua
         static public int Reload(IntPtr p)
         {
             Program.LoadPlugins();
-
-            return 0;
-        }
-        static public int SendGroupMsg(IntPtr p)
-        {
-            Lua lua = Lua.FromIntPtr(p);
-
-            string id = lua.CheckString(1);
-            string t = lua.CheckString(2);
-
-            MessageManager.SendGroupMessageAsync(id,t);
-            //s = Util.EncodingConvert(Encoding.GetEncoding("unicode"), Encoding.GetEncoding("utf-8"), s);
-            Util.Print("发送消息：群 " + id + " .");
-
             return 0;
         }
         
@@ -97,6 +83,29 @@ namespace MiraiLua
 
             return 0;
         }
+        static public int OnReceiveFriend(IntPtr p)
+        {
+            Lua lua = Lua.FromIntPtr(p);
+
+            lua.Pop(lua.GetTop());
+
+            //s = Util.EncodingConvert(Encoding.GetEncoding("unicode"), Encoding.GetEncoding("utf-8"), s);
+            Util.Print("OnReceiveFriend函数未被定义，请检查是否丢失basic插件.", Util.PrintType.WARNING);
+
+            return 0;
+        }
+        static public int OnReceiveTemp(IntPtr p)
+        {
+            Lua lua = Lua.FromIntPtr(p);
+
+            lua.Pop(lua.GetTop());
+
+            //s = Util.EncodingConvert(Encoding.GetEncoding("unicode"), Encoding.GetEncoding("utf-8"), s);
+            Util.Print("OnReceiveTemp函数未被定义，请检查是否丢失basic插件.", Util.PrintType.WARNING);
+
+            return 0;
+        }
+
         static public int HttpGetA(IntPtr p)
         {
             Lua lua = Lua.FromIntPtr(p);
@@ -238,16 +247,15 @@ namespace MiraiLua
 
             return 1;
         }
-        static public int SendGroupMsgEX(IntPtr p)
+        static MessageChain PackMsg(IntPtr p,int paramIndex)
         {
             Lua lua = Lua.FromIntPtr(p);
-            string id = lua.CheckString(1);
             string s = "";
             int argn = lua.GetTop();
 
             MessageChain mc = new MessageChain();
 
-            for (int i = 2; i <= argn; i++)
+            for (int i = paramIndex; i <= argn; i++)
             {
                 if (lua.Type(i) == LuaType.String)
                 {
@@ -257,7 +265,7 @@ namespace MiraiLua
                 }
                 else if (lua.Type(i) == LuaType.Table)
                 {
-                    lua.GetField(i,"Type");
+                    lua.GetField(i, "Type");
                     string type = lua.ToString(-1);
                     lua.Remove(-1);
 
@@ -281,7 +289,7 @@ namespace MiraiLua
                         string tar = lua.ToString(-1);
                         lua.Remove(-1);
 
-                        
+
                         var atm = new AtMessage(tar);
 
                         mc += atm;
@@ -292,8 +300,82 @@ namespace MiraiLua
                 }
                 //Util.Print(lua.TypeName(i));
             }
+            return mc;
+        }
+        static public int SendGroupMsgEX(IntPtr p)
+        {
+            Lua lua = Lua.FromIntPtr(p);
+            string id = lua.CheckString(1);
+            MessageChain mc = PackMsg(p,2);
+            
             MessageManager.SendGroupMessageAsync(id, mc);
-            Util.Print("发送消息： " + id + " :" + s);
+            //Util.Print("发送消息： " + id + " :" + s);
+            return 0;
+        }
+
+        static public int SendTempMsgEX(IntPtr p)
+        {
+            Lua lua = Lua.FromIntPtr(p);
+            string qid = lua.CheckString(1);
+            string gid = lua.CheckString(2);
+            MessageChain mc = PackMsg(p, 3);
+            
+            MessageManager.SendTempMessageAsync(qid, gid, mc);
+
+            //Util.Print("发送消息： " + id + " :" + s);
+            return 0;
+        }
+        static public int SendFriendMsgEX(IntPtr p)
+        {
+            Lua lua = Lua.FromIntPtr(p);
+            string id = lua.CheckString(1);
+            MessageChain mc = PackMsg(p, 2);
+
+            MessageManager.SendFriendMessageAsync(id, mc);
+            //Util.Print("发送消息： " + id + " :" + s);
+            return 0;
+        }
+
+        static public int SendGroupMsg(IntPtr p)
+        {
+            Lua lua = Lua.FromIntPtr(p);
+
+            string id = lua.CheckString(1);
+            string t = lua.CheckString(2);
+
+            MessageManager.SendGroupMessageAsync(id, t);
+            //s = Util.EncodingConvert(Encoding.GetEncoding("unicode"), Encoding.GetEncoding("utf-8"), s);
+            //Util.Print("发送消息：群 " + id + " .");
+
+            return 0;
+        }
+
+        static public int SendFriendMsg(IntPtr p)
+        {
+            Lua lua = Lua.FromIntPtr(p);
+
+            string id = lua.CheckString(1);
+            string t = lua.CheckString(2);
+
+            MessageManager.SendFriendMessageAsync(id, t);
+            //s = Util.EncodingConvert(Encoding.GetEncoding("unicode"), Encoding.GetEncoding("utf-8"), s);
+            //Util.Print("发送消息：群 " + id + " .");
+
+            return 0;
+        }
+
+        static public int SendTempMsg(IntPtr p)
+        {
+            Lua lua = Lua.FromIntPtr(p);
+
+            string qid = lua.CheckString(1);
+            string gid = lua.CheckString(2);
+            string t = lua.CheckString(3);
+
+            MessageManager.SendTempMessageAsync(qid, gid, t);
+            //s = Util.EncodingConvert(Encoding.GetEncoding("unicode"), Encoding.GetEncoding("utf-8"), s);
+            //Util.Print("发送消息：群 " + id + " .");
+
             return 0;
         }
     }

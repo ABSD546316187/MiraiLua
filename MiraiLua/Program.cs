@@ -11,6 +11,7 @@ using System.Threading;
 using System.Xml;
 using System.Runtime.InteropServices;
 using MiraiLua.Classes;
+using System.Threading.Tasks;
 
 namespace MiraiLua
 {
@@ -48,7 +49,7 @@ namespace MiraiLua
                 curFileDir = "";
             }
         }
-
+        
         static public void LoadPlugins()
         {
             if (!Directory.Exists($".{g}plugins"))
@@ -87,7 +88,7 @@ namespace MiraiLua
             }
         }
 
-        static int Main(string[] args)
+        static async Task<int> Main(string[] args)
         {
             Console.ForegroundColor = ConsoleColor.Green;
             Console.Write("MiraiLua v1.1 - Powered by ABSD\n");
@@ -108,14 +109,23 @@ namespace MiraiLua
             lua.SetGlobal("api");
             Util.PushFunction("api", "Reload", lua, LFunctions.Reload);
             Util.PushFunction("api", "SendGroupMsg", lua, LFunctions.SendGroupMsg);
+            Util.PushFunction("api", "SendFriendMsg", lua, LFunctions.SendFriendMsg);
+            Util.PushFunction("api", "SendTempMsg", lua, LFunctions.SendTempMsg);
             Util.PushFunction("api", "SendGroupMsgEX", lua, LFunctions.SendGroupMsgEX);
+            Util.PushFunction("api", "SendFriendMsgEX", lua, LFunctions.SendFriendMsgEX);
+            Util.PushFunction("api", "SendTempMsgEX", lua, LFunctions.SendTempMsgEX);
             Util.PushFunction("api", "OnReceiveGroup", lua, LFunctions.OnReceiveGroup);
+            Util.PushFunction("api", "OnReceiveFriend", lua, LFunctions.OnReceiveFriend);
+            Util.PushFunction("api", "OnReceiveTemp", lua, LFunctions.OnReceiveTemp);
             Util.PushFunction("api", "HttpGet", lua, LFunctions.HttpGetA);
             Util.PushFunction("api", "HttpPost", lua, LFunctions.HttpPostA);
             Util.PushFunction("api", "UploadImg", lua, LFunctions.UploadImg);
             Util.PushFunction("api", "At", lua, LFunctions.At);
 
             lua.Pop(lua.GetTop());
+
+            //加载模块
+            ModuleLoader.LoadModule();
 
             //加载脚本
             LoadPlugins();
@@ -129,9 +139,12 @@ namespace MiraiLua
                 XmlNode xmlRoot = xmlDoc.DocumentElement;
                 //根据节点顺序逐步读取
                 //读取第一个name节点
+
                 string a = xmlRoot.SelectSingleNode("Address").InnerText;
                 string q = xmlRoot.SelectSingleNode("QQ").InnerText;
                 string v = xmlRoot.SelectSingleNode("Key").InnerText;
+
+                Util.Print(String.Format($"正在连接至：{a} / {q} ... 可能需要几秒钟时间."));
 
                 bot = new MiraiBot
                 {
@@ -140,9 +153,7 @@ namespace MiraiLua
                     VerifyKey = v
                 };
 
-                bot.LaunchAsync();
-
-                Util.Print(String.Format("Bot已连接：{0:G} / {1:G}", a, q));
+                await bot.LaunchAsync();
             }
             catch(Exception e)
             {
@@ -194,6 +205,117 @@ namespace MiraiLua
                     lua.Remove(-2);
 
                     Util.Print(String.Format("[{0:G}][{1:G}]：{2:G}", x.GroupName, x.Sender.Name, msg));
+
+                    lua.SetField(-2, "Data");
+
+                    lua.PCall(1, 0, 0);
+                    lua.Remove(1);
+
+                    //Util.Print(lua.GetTop().ToString());
+
+                    if (lua.GetTop() >= 1)
+                        Util.Print(lua.ToString(-1), Util.PrintType.ERROR, ConsoleColor.Red);
+                    lua.Pop(lua.GetTop());
+                }
+            });
+
+            bot.MessageReceived.OfType<FriendMessageReceiver>().Subscribe(x =>
+            {
+                if (x.Sender.Id == bot.QQ)
+                    return;
+
+                string msg = x.MessageChain.GetPlainMessage();
+
+                lock (o)
+                {
+                    lua.GetGlobal("api");
+                    lua.GetField(-1, "OnReceiveFriend");
+
+                    lua.NewTable();
+
+                    lua.PushString(x.FriendRemark);
+                    lua.SetField(-2, "Remark");
+
+                    lua.PushString(x.FriendName);
+                    lua.SetField(-2, "Name");
+
+                    lua.PushString(x.FriendId);
+                    lua.SetField(-2, "ID");
+
+                    lua.PushString(x.Type.ToString());
+                    lua.SetField(-2, "From");
+
+                    lua.GetGlobal("util");
+                    //Util.Print(lua.ToString(-1)+" "+ lua.ToString(-2) + " "+ lua.ToString(-3) + " "+ lua.ToString(-4) + " ");
+                    lua.GetField(-1, "JSONToTable");
+
+                    lua.PushString(x.MessageChain.ToJsonString());
+
+                    lua.Call(1, 1);
+
+                    lua.Remove(-2);
+
+                    Util.Print($"[Friend][{x.FriendName}]：{msg}");
+
+                    lua.SetField(-2, "Data");
+
+                    lua.PCall(1, 0, 0);
+                    lua.Remove(1);
+
+                    //Util.Print(lua.GetTop().ToString());
+
+                    if (lua.GetTop() >= 1)
+                        Util.Print(lua.ToString(-1), Util.PrintType.ERROR, ConsoleColor.Red);
+                    lua.Pop(lua.GetTop());
+                }
+            });
+
+            bot.MessageReceived.OfType<TempMessageReceiver>().Subscribe(x =>
+            {
+                if (x.Sender.Id == bot.QQ)
+                    return;
+
+                string msg = x.MessageChain.GetPlainMessage();
+
+                lock (o)
+                {
+                    lua.GetGlobal("api");
+                    lua.GetField(-1, "OnReceiveTemp");
+
+                    lua.NewTable();
+
+                    lua.PushString(x.Sender.Id);
+                    lua.SetField(-2, "SenderID");
+
+                    lua.PushString(x.Sender.Name);
+                    lua.SetField(-2, "SenderName");
+
+                    lua.PushNumber((int)x.Sender.Permission);
+                    lua.SetField(-2, "SenderRank");
+
+                    lua.PushString(x.GroupId);
+                    lua.SetField(-2, "GroupID");
+
+                    lua.PushString(x.GroupName);
+                    lua.SetField(-2, "GroupName");
+
+                    lua.PushInteger((int)x.BotPermission);
+                    lua.SetField(-2, "BotPermission");
+
+                    lua.PushString(x.Type.ToString());
+                    lua.SetField(-2, "From");
+
+                    lua.GetGlobal("util");
+                    //Util.Print(lua.ToString(-1)+" "+ lua.ToString(-2) + " "+ lua.ToString(-3) + " "+ lua.ToString(-4) + " ");
+                    lua.GetField(-1, "JSONToTable");
+
+                    lua.PushString(x.MessageChain.ToJsonString());
+
+                    lua.Call(1, 1);
+
+                    lua.Remove(-2);
+
+                    Util.Print($"[Temp {x.GroupName}][{x.Sender.Name}]：{msg}");
 
                     lua.SetField(-2, "Data");
 
@@ -260,6 +382,11 @@ namespace MiraiLua
                     else
                         Util.Print("无效的命令. 要获取帮助请输入help.", Util.PrintType.INFO, ConsoleColor.Red);
                 }
+            }
+            var ms = ModuleLoader.m_hModule;
+            foreach(var m in ms)
+            {
+                ModuleLoader.FreeLibrary(m.p);
             }
             return 0;
         }
