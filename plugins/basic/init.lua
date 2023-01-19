@@ -1,5 +1,6 @@
-Qmsgt = {}
-local enableQ = {}
+﻿Qmsgt = {}
+
+local enableQ = {"114514"}
 
 function isValidQ(n)
 	for _,v in pairs(enableQ) do
@@ -23,6 +24,25 @@ function api.OnReceiveGroup(data)--群号/Q号均为string
 	end
 end
 
+function api.OnReceiveFriend(data)
+	--PrintTable(data)
+	--[[
+	if not isValidQ(data.GroupID) then return end
+	for _,v in pairs(Qmsgt) do
+		v(data)
+	end
+	]]--
+end
+
+function api.OnReceiveTemp(data)
+	--PrintTable(data)
+	--[[
+	if not isValidQ(data.GroupID) then return end
+	for _,v in pairs(Qmsgt) do
+		v(data)
+	end
+	]]--
+end
 ---------------------------------
 -- log输出格式化
 local function logPrint(str)
@@ -138,3 +158,5 @@ function string.split(str,sp)
     end
     return result
 end
+
+include("main.lua")

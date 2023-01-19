@@ -34,6 +34,17 @@ AddCmd("reload",true,"重载脚本",function (data,...)--命令的添加函数�
 	api.Reload()
 end)
 
+AddCmd("test",false,"test",function (data,...)--命令的添加函数都是这样的格式
+	local args = {...}--获取后续的参数
+
+	--下面自定义
+	local s = ""
+	for _,v in pairs(args) do
+		s = s .. v
+	end
+	api.SendTempMsg(data.SenderID,data.GroupID,"Test." .. s)
+end)
+
 AddCmd("lua",true,"执行一段lua",function (data,...)
 	local args = {...}
 	local s = ""
