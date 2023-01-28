@@ -4,6 +4,15 @@ using Mirai.Net.Sessions.Http.Managers;
 using Mirai.Net.Data.Messages.Concretes;
 using Mirai.Net.Data.Messages;
 using System.Collections.Generic;
+using Mirai.Net.Utils.Scaffolds;
+using System.IO;
+using System.Drawing;
+using Manganese.Text;
+using static System.Net.Mime.MediaTypeNames;
+using Newtonsoft.Json;
+using System.Linq;
+using System.Text.RegularExpressions;
+using System.Text;
 
 namespace MiraiLua
 {
@@ -62,16 +71,37 @@ namespace MiraiLua
             lua.Call(1, 1);
             lua.GetField(-1, "short_src");
             string s = lua.CheckString(-1);
-            s = $"plugins{g}{Util.GetMiddleStr(s, $".{g}plugins{g}", g.ToString())}{g}";
-            lua.PushString(s);
-            return 1;
+            try
+            {
+                s = $"plugins{g}{Util.GetMiddleStr(s, $".{g}plugins{g}", g.ToString())}";
+                lua.PushString(s);
+                return 1;
+            }
+            catch
+            {
+                lua.PushNil();
+                return 1;
+            }
         }
         static public int Reload(IntPtr p)
         {
             Program.LoadPlugins();
             return 0;
         }
-        
+        static public int LocalBot(IntPtr p)
+        {
+            Lua lua = Lua.FromIntPtr(p);
+            lua.PushString(Program.bot.QQ);
+            return 1;
+        }
+        static public int Unescape(IntPtr p)
+        {
+            Lua lua = Lua.FromIntPtr(p);
+            var s = lua.CheckString(1);
+            lua.PushString(Regex.Unescape(s));
+            return 1;
+        }
+
         static public int OnReceiveGroup(IntPtr p)
         {
             Lua lua = Lua.FromIntPtr(p);
@@ -152,8 +182,9 @@ namespace MiraiLua
         static public int HttpPostA(IntPtr p)
         {
             Lua lua = Lua.FromIntPtr(p);
-            var hs = new Dictionary<string, string>();
             var pa = new Dictionary<string, string>();
+            var pas = "";
+            var hs = new Dictionary<string, string>();
             string u = lua.CheckString(1);
 
             lua.CheckType(2, LuaType.Function);
@@ -168,19 +199,25 @@ namespace MiraiLua
             lua.SetGlobal(k2);
 
             hs.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:107.0) Gecko/20100101 Firefox/107.0");
-
+            
             if (lua.Type(4) == LuaType.Table)
             {
+
                 lua.PushCopy(4);
                 lua.PushNil();
                 while (lua.Next(-2))
                 {
                     lua.PushCopy(-2);
-                    if (lua.Type(-1) == LuaType.String && lua.Type(-2) == LuaType.String)
+                    if (lua.Type(-1) == LuaType.String)
                         pa.Add(lua.ToString(-1), lua.ToString(-2));
                     lua.Pop(2);
                 }
                 lua.Pop(1);
+                pas = JsonConvert.SerializeObject(pa);
+            }
+            else if (lua.Type(4) == LuaType.String)
+            {
+                pas = lua.ToString(4);
             }
 
             if (lua.Type(5) == LuaType.Table)
@@ -201,9 +238,51 @@ namespace MiraiLua
                 lua.Pop(1);
             }
 
-            HttpRequest.PostAsync(u, k1, k2, p, pa,hs);
+            HttpRequest.PostAsync(u, k1, k2, p, pas, hs);
 
             return 0;
+        }
+        static public int UploadImgBase64(IntPtr p)
+        {
+            Lua lua = Lua.FromIntPtr(p);
+            lua.CheckType(1, LuaType.UserData);
+            try
+            {
+                var b = ByteArray.GetDataArr(1).ToArray();
+                string pic = Convert.ToBase64String(b);
+
+                var re = new MessageChainBuilder().ImageFromBase64(pic).Build();
+                var json = re.ToJsonString().Replace("[", "").Replace("]","");
+
+                var rspObj = JsonConvert.DeserializeAnonymousType(json, new {
+                    base64 = "",
+                });
+
+                lua.NewTable();
+                lua.PushString("Image");
+                lua.SetField(-2, "Type");
+                lua.PushString(rspObj.base64);
+                lua.SetField(-2, "Base64");
+
+                //MessageManager.SendGroupMessageAsync("616319393", image);
+                //Util.Print(image.ToString());
+                /*
+                lua.NewTable();
+
+                lua.PushString("Image");
+                lua.SetField(-2, "Type");
+                lua.PushString(re);
+                lua.SetField(-2, "ImageId");
+
+                return 1;
+                */
+                return 1;
+            }
+            catch (Exception e)
+            {
+                Util.Print("上传图片失败：" + e.Message, Util.PrintType.ERROR, ConsoleColor.Red);
+                return 0;
+            }
         }
 
         static public int UploadImg(IntPtr p)
@@ -271,15 +350,22 @@ namespace MiraiLua
 
                     if (type == "Image")
                     {
+                        var image = new ImageMessage();
                         lua.GetField(i, "ImageId");
-                        string imgid = lua.ToString(-1);
-                        lua.Remove(-1);
-
-                        var image = new ImageMessage
+                        if(lua.Type(-1) == LuaType.Nil)
                         {
-                            ImageId = imgid
-                        };
-
+                            lua.Remove(-1);
+                            lua.GetField(i, "Base64");
+                            string base64 = lua.ToString(-1);
+                            lua.Remove(-1);
+                            image.Base64 = base64;
+                        }
+                        else
+                        {
+                            string imgid = lua.ToString(-1);
+                            lua.Remove(-1);
+                            image.ImageId = imgid;
+                        }
                         mc += image;
                         s += "[" + type + "]";
                     }

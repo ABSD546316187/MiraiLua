@@ -1,6 +1,13 @@
-﻿using Flurl.Http;
+﻿using Flurl;
+using Flurl.Http;
+using Flurl.Http.Configuration;
 using System;
 using System.Collections.Generic;
+using System.Data.SqlTypes;
+using System.Text.Json;
+using System.Net.Http;
+using Newtonsoft.Json;
+using System.Reflection.Metadata;
 
 namespace MiraiLua
 {
@@ -67,11 +74,11 @@ namespace MiraiLua
         /// <param name="l">Lua Ptr</param>
         /// <param name="param">Params</param>
         /// <param name="head">Head List</param>
-        public static async void PostAsync(string u, string k1, string k2, IntPtr l, Dictionary<string, string> param, Dictionary<string, string> head)
+        public static async void PostAsync(string u, string k1, string k2, IntPtr l, string param, Dictionary<string, string> head)
         {
             try
             {
-                var re = await u.WithHeaders(head).PostJsonAsync(param).ReceiveString();
+                var re = await u.WithHeaders(head).PostStringAsync(param).ReceiveString();
 
                 lock (Program.o)
                 {
@@ -101,6 +108,16 @@ namespace MiraiLua
                 }
                 //Util.Print("HttpGet失败：" + e.Message, Util.PrintType.ERROR, ConsoleColor.Red);
             }
+        }
+    }
+    public class UntrustedCertClientFactory : DefaultHttpClientFactory
+    {
+        public override HttpMessageHandler CreateMessageHandler()
+        {
+            return new HttpClientHandler
+            {
+                ServerCertificateCustomValidationCallback = (a, b, c, d) => true
+            };
         }
     }
 }

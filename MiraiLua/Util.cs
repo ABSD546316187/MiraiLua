@@ -41,10 +41,18 @@ namespace MiraiLua
         }
 
         public static void PushFunction(string table,string name,Lua lua,LuaFunction f)
-        {//一定要先存在这个table的情况下
+        {
             lua.GetGlobal(table);
+            if (lua.Type(-1) == LuaType.Nil)//不存在就创建
+            {
+                lua.NewTable();
+                lua.SetGlobal(table);
+            }
+            lua.GetGlobal(table);
+            lua.Remove(-2);
             lua.PushCFunction(f);
             lua.SetField(1, name);
+            lua.Pop(1);
         }
 
         /// <summary>

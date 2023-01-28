@@ -10,8 +10,8 @@ using System.Text;
 using System.Threading;
 using System.Xml;
 using System.Runtime.InteropServices;
-using MiraiLua.Classes;
 using System.Threading.Tasks;
+using Flurl.Http;
 
 namespace MiraiLua
 {
@@ -95,19 +95,22 @@ namespace MiraiLua
 
             Util.Print("正在启动MiraiLua...");
 
+            FlurlHttp.ConfigureClient("https://api.openai.com/v1/moderations", cli =>
+            cli.Settings.HttpClientFactory = new UntrustedCertClientFactory());
+
             ////////////////LUA///////////////////
             lua.Encoding = Encoding.UTF8;
 
             lua.Register("print",LFunctions.Print);
             lua.Register("include", LFunctions.include);
+            lua.Register("Unescape", LFunctions.Unescape);
             lua.Register("GetDir", LFunctions.GetDir);
             lua.Register("ByteArray", ByteArray.New);
             lua.Register("LoadFile", ByteArray.LoadFile);
             lua.Register("SaveFile", ByteArray.SaveFile);
 
-            lua.NewTable();
-            lua.SetGlobal("api");
             Util.PushFunction("api", "Reload", lua, LFunctions.Reload);
+            Util.PushFunction("api", "LocalBot", lua, LFunctions.LocalBot);
             Util.PushFunction("api", "SendGroupMsg", lua, LFunctions.SendGroupMsg);
             Util.PushFunction("api", "SendFriendMsg", lua, LFunctions.SendFriendMsg);
             Util.PushFunction("api", "SendTempMsg", lua, LFunctions.SendTempMsg);
@@ -120,12 +123,13 @@ namespace MiraiLua
             Util.PushFunction("api", "HttpGet", lua, LFunctions.HttpGetA);
             Util.PushFunction("api", "HttpPost", lua, LFunctions.HttpPostA);
             Util.PushFunction("api", "UploadImg", lua, LFunctions.UploadImg);
+            Util.PushFunction("api", "UploadImgBase64", lua, LFunctions.UploadImgBase64);
             Util.PushFunction("api", "At", lua, LFunctions.At);
-
-            lua.Pop(lua.GetTop());
 
             //加载模块
             ModuleLoader.LoadModule();
+
+            lua.Pop(lua.GetTop());
 
             //加载脚本
             LoadPlugins();
@@ -165,9 +169,6 @@ namespace MiraiLua
             //接收消息
             bot.MessageReceived.OfType<GroupMessageReceiver>().Subscribe(x =>
             {
-                if (x.Sender.Id == bot.QQ)
-                    return;
-                
                 string msg = x.MessageChain.GetPlainMessage();
                 
                 lock (o) {
@@ -204,7 +205,7 @@ namespace MiraiLua
 
                     lua.Remove(-2);
 
-                    Util.Print(String.Format("[{0:G}][{1:G}]：{2:G}", x.GroupName, x.Sender.Name, msg));
+                    //Util.Print(String.Format("[{0:G}][{1:G}]：{2:G}", x.GroupName, x.Sender.Name, msg));
 
                     lua.SetField(-2, "Data");
 
@@ -221,9 +222,6 @@ namespace MiraiLua
 
             bot.MessageReceived.OfType<FriendMessageReceiver>().Subscribe(x =>
             {
-                if (x.Sender.Id == bot.QQ)
-                    return;
-
                 string msg = x.MessageChain.GetPlainMessage();
 
                 lock (o)
@@ -237,10 +235,10 @@ namespace MiraiLua
                     lua.SetField(-2, "Remark");
 
                     lua.PushString(x.FriendName);
-                    lua.SetField(-2, "Name");
+                    lua.SetField(-2, "SenderName");
 
                     lua.PushString(x.FriendId);
-                    lua.SetField(-2, "ID");
+                    lua.SetField(-2, "SenderID");
 
                     lua.PushString(x.Type.ToString());
                     lua.SetField(-2, "From");
@@ -255,7 +253,7 @@ namespace MiraiLua
 
                     lua.Remove(-2);
 
-                    Util.Print($"[Friend][{x.FriendName}]：{msg}");
+                    //Util.Print($"[Friend][{x.FriendName}]：{msg}");
 
                     lua.SetField(-2, "Data");
 
@@ -272,9 +270,6 @@ namespace MiraiLua
 
             bot.MessageReceived.OfType<TempMessageReceiver>().Subscribe(x =>
             {
-                if (x.Sender.Id == bot.QQ)
-                    return;
-
                 string msg = x.MessageChain.GetPlainMessage();
 
                 lock (o)
@@ -315,7 +310,7 @@ namespace MiraiLua
 
                     lua.Remove(-2);
 
-                    Util.Print($"[Temp {x.GroupName}][{x.Sender.Name}]：{msg}");
+                    //Util.Print($"[Temp {x.GroupName}][{x.Sender.Name}]：{msg}");
 
                     lua.SetField(-2, "Data");
 
@@ -350,6 +345,10 @@ namespace MiraiLua
                         Test();
                     if (cargs[0] == "reload")
                         LoadPlugins();
+                    else if (cargs[0] == "test")
+                    {
+                        GC.Collect();
+                    }
                     else if (cargs[0] == "help")
                     {
                         Util.Print("帮助列表：", Util.PrintType.INFO);
@@ -369,6 +368,7 @@ namespace MiraiLua
                                 if (i > 1)
                                     s += " " + cargs[i];
                             }
+                            
 
                             if (lua.DoString(s))
                             {

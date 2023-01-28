@@ -53,7 +53,7 @@ namespace MiraiLua
                         try
                         {
                             IntPtr moduleP = LoadLibrary(f.FullName, 0, (int)LoaderOptimization.MultiDomain);
-                            if (GetLastError() != 0)
+                            if (moduleP == 0)
                             {
                                 Util.Print($"加载DLL失败(错误代码:{GetLastError()}).", Util.PrintType.ERROR, ConsoleColor.Red);
                                 continue;

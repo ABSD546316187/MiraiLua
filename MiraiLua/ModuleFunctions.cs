@@ -7,6 +7,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace MiraiLua
 {
@@ -16,8 +17,15 @@ namespace MiraiLua
         static Lua lua = Program.lua;
 
         delegate int Delegate_Lua(IntPtr p);
-
         delegate void Delegate_Print(string t, int type, int color);
+
+
+        static void AddFunc<T>(T d)
+        {
+            GCHandle.Alloc(d);//不回收api函数，以便随时调用
+            a.Add(Marshal.GetFunctionPointerForDelegate(d));//1
+        }
+
         static void Print(string t, int type, int color)
         {
             Util.Print(t, (Util.PrintType)type, (ConsoleColor)color);
@@ -26,21 +34,21 @@ namespace MiraiLua
         delegate void Delegate_Lua_PushFunction(IntPtr p, string table, string name);
         static void Lua_PushFunction(IntPtr p,string table, string name)
         {
-            Delegate_Lua f1 = (Delegate_Lua)Marshal.GetDelegateForFunctionPointer(p,typeof(Delegate_Lua));
-            LuaFunction f2 = new LuaFunction(delegate (IntPtr p)//我技术力太低了，不会写委托转换只能这样（悲）
-            {
-                return f1(p);
-            });
+            
+            Delegate_Lua f1 = Marshal.GetDelegateForFunctionPointer<Delegate_Lua>(p);
+            LuaFunction f2 = new LuaFunction(f1);
 
-            lua.GetGlobal(table);
-            lua.PushCFunction(f2);
-            lua.SetField(1, name);
+            GCHandle.Alloc(f2);//不回收api函数，以便随时调用
+
+            Util.PushFunction(table, name, lua, f2);
         }
 
         static ModuleFunctions()
         {
-            a.Add(Marshal.GetFunctionPointerForDelegate(new Delegate_Print(Print)));//1
-            a.Add(Marshal.GetFunctionPointerForDelegate(new Delegate_Lua_PushFunction(Lua_PushFunction)));
+            GC.KeepAlive(a);
+
+            AddFunc<Delegate_Print>(Print);//1
+            AddFunc<Delegate_Lua_PushFunction>(Lua_PushFunction);
 
             CreateFuns_Push();
             CreateFuns_Check();
@@ -57,12 +65,12 @@ namespace MiraiLua
         delegate void Delegate_Lua_PushString(string n);
         static void CreateFuns_Push()
         {
-            a.Add(Marshal.GetFunctionPointerForDelegate(new Delegate_Lua_PushBoolean(lua.PushBoolean)));
-            a.Add(Marshal.GetFunctionPointerForDelegate(new Delegate_Lua_PushCopy(lua.PushCopy)));
-            a.Add(Marshal.GetFunctionPointerForDelegate(new Delegate_Lua_PushInteger(lua.PushInteger)));//5
-            a.Add(Marshal.GetFunctionPointerForDelegate(new Delegate_Lua_PushNil(lua.PushNil)));
-            a.Add(Marshal.GetFunctionPointerForDelegate(new Delegate_Lua_PushNumber(lua.PushNumber)));
-            a.Add(Marshal.GetFunctionPointerForDelegate(new Delegate_Lua_PushString(lua.PushString)));
+            AddFunc<Delegate_Lua_PushBoolean>(lua.PushBoolean);
+            AddFunc<Delegate_Lua_PushCopy>(lua.PushCopy);
+            AddFunc<Delegate_Lua_PushInteger>(lua.PushInteger);//5
+            AddFunc<Delegate_Lua_PushNil>(lua.PushNil);
+            AddFunc<Delegate_Lua_PushNumber>(lua.PushNumber);
+            AddFunc<Delegate_Lua_PushString>(lua.PushString);
         }
 
         delegate void Delegate_Lua_CheckAny(int n);
@@ -74,13 +82,13 @@ namespace MiraiLua
         delegate IntPtr Delegate_Lua_CheckUserData(int n, string name);
         static void CreateFuns_Check()
         {
-            a.Add(Marshal.GetFunctionPointerForDelegate(new Delegate_Lua_CheckAny(lua.CheckAny)));
-            a.Add(Marshal.GetFunctionPointerForDelegate(new Delegate_Lua_CheckInteger(lua.CheckInteger)));//10
-            a.Add(Marshal.GetFunctionPointerForDelegate(new Delegate_Lua_CheckNumber(lua.CheckNumber)));
-            a.Add(Marshal.GetFunctionPointerForDelegate(new Delegate_Lua_CheckStack(lua.CheckStack)));
-            a.Add(Marshal.GetFunctionPointerForDelegate(new Delegate_Lua_CheckString(lua.CheckString)));
-            a.Add(Marshal.GetFunctionPointerForDelegate(new Delegate_Lua_CheckType(lua.CheckType)));
-            a.Add(Marshal.GetFunctionPointerForDelegate(new Delegate_Lua_CheckUserData(lua.CheckUserData)));//15
+            AddFunc<Delegate_Lua_CheckAny>(lua.CheckAny);
+            AddFunc<Delegate_Lua_CheckInteger>(lua.CheckInteger);//10
+            AddFunc<Delegate_Lua_CheckNumber>(lua.CheckNumber);
+            AddFunc<Delegate_Lua_CheckStack>(lua.CheckStack);
+            AddFunc<Delegate_Lua_CheckString>(lua.CheckString);
+            AddFunc<Delegate_Lua_CheckType>(lua.CheckType);
+            AddFunc<Delegate_Lua_CheckUserData>(lua.CheckUserData);//15
         }
 
         delegate LuaType Delegate_Lua_GetField(int n,string k);
@@ -97,18 +105,18 @@ namespace MiraiLua
         delegate int Delegate_Lua_GetUserValue(int n);
         static void CreateFuns_Get()
         {
-            a.Add(Marshal.GetFunctionPointerForDelegate(new Delegate_Lua_GetField(lua.GetField)));
-            a.Add(Marshal.GetFunctionPointerForDelegate(new Delegate_Lua_GetGlobal(lua.GetGlobal)));
-            a.Add(Marshal.GetFunctionPointerForDelegate(new Delegate_Lua_GetInteger(lua.GetInteger)));
-            a.Add(Marshal.GetFunctionPointerForDelegate(new Delegate_Lua_GetLocal(lua.GetLocal)));
-            a.Add(Marshal.GetFunctionPointerForDelegate(new Delegate_Lua_GetMetaField(lua.GetMetaField)));//20
-            a.Add(Marshal.GetFunctionPointerForDelegate(new Delegate_Lua_GetMetaTable(lua.GetMetaTable)));
-            a.Add(Marshal.GetFunctionPointerForDelegate(new Delegate_Lua_GetStack(lua.GetStack)));
-            a.Add(Marshal.GetFunctionPointerForDelegate(new Delegate_Lua_GetSubTable(lua.GetSubTable)));
-            a.Add(Marshal.GetFunctionPointerForDelegate(new Delegate_Lua_GetTable(lua.GetTable)));
-            a.Add(Marshal.GetFunctionPointerForDelegate(new Delegate_Lua_GetTop(lua.GetTop)));//25
-            a.Add(Marshal.GetFunctionPointerForDelegate(new Delegate_Lua_GetUpValue(lua.GetUpValue)));
-            a.Add(Marshal.GetFunctionPointerForDelegate(new Delegate_Lua_GetUserValue(lua.GetUserValue)));
+            AddFunc<Delegate_Lua_GetField>(lua.GetField);
+            AddFunc<Delegate_Lua_GetGlobal>(lua.GetGlobal);
+            AddFunc<Delegate_Lua_GetInteger>(lua.GetInteger);
+            AddFunc<Delegate_Lua_GetLocal>(lua.GetLocal);
+            AddFunc<Delegate_Lua_GetMetaField>(lua.GetMetaField);//20
+            AddFunc<Delegate_Lua_GetMetaTable>(lua.GetMetaTable);
+            AddFunc<Delegate_Lua_GetStack>(lua.GetStack);
+            AddFunc<Delegate_Lua_GetSubTable>(lua.GetSubTable);
+            AddFunc<Delegate_Lua_GetTable>(lua.GetTable);
+            AddFunc<Delegate_Lua_GetTop>(lua.GetTop);//25
+            AddFunc<Delegate_Lua_GetUpValue>(lua.GetUpValue);
+            AddFunc<Delegate_Lua_GetUserValue>(lua.GetUserValue);
         }
 
         delegate void Delegate_Lua_SetField(int n, string k);
@@ -123,16 +131,16 @@ namespace MiraiLua
         delegate void Delegate_Lua_SetIndexedUserValue(int index,int n);
         static void CreateFuns_Set()
         {
-            a.Add(Marshal.GetFunctionPointerForDelegate(new Delegate_Lua_SetField(lua.SetField)));
-            a.Add(Marshal.GetFunctionPointerForDelegate(new Delegate_Lua_SetGlobal(lua.SetGlobal)));
-            a.Add(Marshal.GetFunctionPointerForDelegate(new Delegate_Lua_SetIndexedUserValue(lua.SetIndexedUserValue)));//30
-            a.Add(Marshal.GetFunctionPointerForDelegate(new Delegate_Lua_SetInteger(lua.SetInteger)));
-            a.Add(Marshal.GetFunctionPointerForDelegate(new Delegate_Lua_SetLocal(lua.SetLocal)));
-            a.Add(Marshal.GetFunctionPointerForDelegate(new Delegate_Lua_SetMetaTable(lua.SetMetaTable)));
-            a.Add(Marshal.GetFunctionPointerForDelegate(new Delegate_Lua_SetTable(lua.SetTable)));
-            a.Add(Marshal.GetFunctionPointerForDelegate(new Delegate_Lua_SetTop(lua.SetTop)));//35
-            a.Add(Marshal.GetFunctionPointerForDelegate(new Delegate_Lua_SetUpValue(lua.SetUpValue)));
-            a.Add(Marshal.GetFunctionPointerForDelegate(new Delegate_Lua_SetUserValue(lua.SetUserValue)));
+            AddFunc<Delegate_Lua_SetField>(lua.SetField);
+            AddFunc<Delegate_Lua_SetGlobal>(lua.SetGlobal);
+            AddFunc<Delegate_Lua_SetIndexedUserValue>(lua.SetIndexedUserValue);//30
+            AddFunc<Delegate_Lua_SetInteger>(lua.SetInteger);
+            AddFunc<Delegate_Lua_SetLocal>(lua.SetLocal);
+            AddFunc<Delegate_Lua_SetMetaTable>(lua.SetMetaTable);
+            AddFunc<Delegate_Lua_SetTable>(lua.SetTable);
+            AddFunc<Delegate_Lua_SetTop>(lua.SetTop);//35
+            AddFunc<Delegate_Lua_SetUpValue>(lua.SetUpValue);
+            AddFunc<Delegate_Lua_SetUserValue>(lua.SetUserValue);
         }
 
         delegate void Delegate_Lua_Pop(int n);
@@ -145,18 +153,29 @@ namespace MiraiLua
         delegate IntPtr Delegate_Lua_ToPointer(int index);
         delegate string Delegate_Lua_ToString(int index);
         delegate IntPtr Delegate_Lua_ToUserData(int index);
+        delegate void Delegate_Lua_NewTable();
+        delegate LuaType Delegate_Lua_Type(int index);
+        delegate void Delegate_Lua_PushByteArray(int p,int l);
         static void CreateFuns_Other()
         {
-            a.Add(Marshal.GetFunctionPointerForDelegate(new Delegate_Lua_Pop(lua.Pop)));
-            a.Add(Marshal.GetFunctionPointerForDelegate(new Delegate_Lua_Call(lua.Call)));
-            a.Add(Marshal.GetFunctionPointerForDelegate(new Delegate_Lua_PCall(lua.PCall)));//40
-            a.Add(Marshal.GetFunctionPointerForDelegate(new Delegate_Lua_Next(lua.Next)));
-            a.Add(Marshal.GetFunctionPointerForDelegate(new Delegate_Lua_ToBoolean(lua.ToBoolean)));
-            a.Add(Marshal.GetFunctionPointerForDelegate(new Delegate_Lua_ToInteger(lua.ToInteger)));
-            a.Add(Marshal.GetFunctionPointerForDelegate(new Delegate_Lua_ToNumber(lua.ToNumber)));
-            a.Add(Marshal.GetFunctionPointerForDelegate(new Delegate_Lua_ToPointer(lua.ToPointer)));//45
-            a.Add(Marshal.GetFunctionPointerForDelegate(new Delegate_Lua_ToString(lua.ToString)));
-            a.Add(Marshal.GetFunctionPointerForDelegate(new Delegate_Lua_ToUserData(lua.ToUserData)));
+            AddFunc<Delegate_Lua_Pop>(lua.Pop);
+            AddFunc<Delegate_Lua_Call>(lua.Call);
+            AddFunc<Delegate_Lua_PCall>(lua.PCall);//40
+            AddFunc<Delegate_Lua_Next>(lua.Next);
+            AddFunc<Delegate_Lua_ToBoolean>(lua.ToBoolean);
+            AddFunc<Delegate_Lua_ToInteger>(lua.ToInteger);
+            AddFunc<Delegate_Lua_ToNumber>(lua.ToNumber);
+            AddFunc<Delegate_Lua_ToPointer>(lua.ToPointer);//45
+            AddFunc<Delegate_Lua_ToString>(lua.ToString);
+            AddFunc<Delegate_Lua_ToUserData>(lua.ToUserData);
+            AddFunc<Delegate_Lua_NewTable>(lua.NewTable);
+            AddFunc<Delegate_Lua_Type>(lua.Type);
+            AddFunc<Delegate_Lua_PushByteArray>(delegate(int p,int l)
+            {
+                var b = new byte[l];
+                Marshal.Copy(p, b, 0, l);
+                ByteArray.PushByteArray(b);
+            });//50
         }
 
         static public byte[] GetFunsData()
