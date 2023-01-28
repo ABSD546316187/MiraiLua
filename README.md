@@ -3,7 +3,8 @@ MiraiLua是基于 [Mirai.Net](https://github.com/SinoAHpx/Mirai.Net) / [mirai-ap
 
 ## 使用方法
 
-- 安装.NET Core 3.1 SDK (暂时需要这么做)
+- 安装.NET7 (暂时需要这么做)
+- 最新版本的源码支持dll模块，若使用C#开发模块要求.Net Framework作为框架(反正只要是stdcall能用就行，具体的接口自行查阅源码，成熟后会放出)
 - 配置主程序目录下的 `settings.xml`
   - `Address` 是 [mirai-api-http](https://github.com/project-mirai/mirai-api-http) 中配置的地址
   - `QQ` 是 [mirai](https://github.com/mamoe/mirai) 中配置的QQ号
