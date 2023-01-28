@@ -16,8 +16,14 @@ MiraiLua是基于 [Mirai.Net](https://github.com/SinoAHpx/Mirai.Net) / [mirai-ap
 ### API
 ```lua
 void api.Reload()                                       --重载插件
+string api.LocalBot()                                   --获取当前bot的QQ号
 void api.SendGroupMsg(string GroupID, string text)      --发送群组消息
+void api.SendTempMsg(string QQID, string GroupID, string text)
+                                                        --发送临时消息
+void api.SendFriendMsg(string QQID, string text)        --发送好友消息
 void api.SendGroupMsgEX(string GroupID, ...)            --发送群组消息，后面为可变参数，可解析上传图片等高级接口返回的table
+void api.SendTempMsgEX(string QQID, string GroupID, ...)--发送临时消息，后面为可变参数，可解析上传图片等高级接口返回的table
+void api.SendFriendMsgEX(string QQID, ...)              --发送好友消息，后面为可变参数，可解析上传图片等高级接口返回的table
 void api.OnReceiveGroup(table data)                     --接收到消息后由C#调用，结构见下文
 void api.HttpGet(                                       --调用Http Api(GET)
 	string url,
@@ -35,12 +41,13 @@ void api.HttpPost(                                      --调用Http Api(POST)
 )
 
 table api.UploadImg(string path)                        --上传本地图片，返回格式化表
+table api.UploadImgBase64(ByteArray data)               --将ByteArrary内的数据作为图片上传，返回格式化表
 table api.At(string qq)                                 --艾特，返回格式化表
 ```
 ### Global
 ```lua
 void include(string path)                               --加载文件，该函数只能在加载插件的时候调用
-string GetDir()                                         --获取当前脚本的运行目录，已自带"\"
+string GetDir()                                         --获取当前脚本的运行目录。注意：不自带最后的"\"
 ByteArray ByteArray(table data = {})                    --创建一个字节数组
 ByteArray LoadFile(string path)                         --读入文件，返回字节数组。失败返回长度为0的ByteArray并附加一个错误信息
 boolean SaveFile(string path,ByteArray data)            --保存文件。成功返回true，失败返回false并附加一个错误信息
