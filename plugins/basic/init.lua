@@ -1,6 +1,8 @@
-﻿Qmsgt = {}
+QmsgtG = {}
+QmsgtF = {}
+QmsgtT = {}
 
-local enableQ = {"114514"}
+local enableQ = {}
 
 function isValidQ(n)
 	for _,v in pairs(enableQ) do
@@ -12,36 +14,59 @@ function isValidQ(n)
 end
 
 function api.ReceiveQ(q,func)--参数为一个独一无二的标识符,回调函数
-	Qmsgt[q]=func
+	QmsgtG[q]=func
+end
+
+function api.ReceiveQF(q,func)--参数为一个独一无二的标识符,回调函数
+	QmsgtF[q]=func
+end
+
+function api.ReceiveQT(q,func)--参数为一个独一无二的标识符,回调函数
+	QmsgtT[q]=func
+end
+
+local function Data2Text(data)
+	local s = ""
+	for _,v in pairs(data.Data) do
+		if v.type == "Plain" then
+			s = s .. v.text
+		elseif v.type ~= "Source" then
+			s = s .. "[" .. v.type .. "]"
+		end
+	end
+	return s
 end
 
 function api.OnReceiveGroup(data)--群号/Q号均为string
 	--PrintTable(data)
-
+	local s = Data2Text(data)
+	print(string.format("[%s][%s]：%s",data.GroupName,data.SenderName,s))
+	
+	if data.SenderID == api.LocalBot() then return end
 	if not isValidQ(data.GroupID) then return end
-	for _,v in pairs(Qmsgt) do
+	for _,v in pairs(QmsgtG) do
 		v(data)
 	end
 end
 
 function api.OnReceiveFriend(data)
 	--PrintTable(data)
-	--[[
-	if not isValidQ(data.GroupID) then return end
-	for _,v in pairs(Qmsgt) do
+	local s = Data2Text(data)
+	print(string.format("[Friend][%s]：%s",data.SenderName,s))
+	if data.SenderID == api.LocalBot() then return end
+	for _,v in pairs(QmsgtF) do
 		v(data)
 	end
-	]]--
 end
 
 function api.OnReceiveTemp(data)
 	--PrintTable(data)
-	--[[
-	if not isValidQ(data.GroupID) then return end
-	for _,v in pairs(Qmsgt) do
+	local s = Data2Text(data)
+	print(string.format("[Temp %s][%s]：%s",data.GroupName,data.SenderName,s))
+	if data.SenderID == api.LocalBot() then return end
+	for _,v in pairs(QmsgtT) do
 		v(data)
 	end
-	]]--
 end
 ---------------------------------
 -- log输出格式化

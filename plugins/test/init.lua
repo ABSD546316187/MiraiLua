@@ -35,5 +35,16 @@ else
 end
 
 print(ba)
+
+local ba,e=LoadFile(GetDir() .. "\\未命名.png")
+if #ba.data == 0 then
+	print(e)
+else
+	local a = api.UploadImgBase64(ba)
+	local b = api.UploadImg(GetDir() .. "\\a.jpg")
+	api.SendFriendMsgEX("2624860918",a,b)
+	
+end
 ]]
+
 
