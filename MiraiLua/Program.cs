@@ -91,7 +91,7 @@ namespace MiraiLua
         static async Task<int> Main(string[] args)
         {
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.Write("MiraiLua v1.1 - Powered by ABSD\n");
+            Console.Write("MiraiLua v1.2 - Powered by ABSD\n");
 
             Util.Print("正在启动MiraiLua...");
 
