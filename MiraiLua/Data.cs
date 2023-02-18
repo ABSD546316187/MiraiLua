@@ -6,13 +6,17 @@ using System.Threading.Tasks;
 
 namespace MiraiLua
 {
-    class Data
+    public class Data
     {
         int ind = 0;
-        List<byte> b = new List<byte>();
+        List<byte> b;
         public Data(byte[] data)
         {
             b = data.ToList();
+        }
+        public Data()
+        {
+            b = new List<byte>();
         }
         public byte[] GetData()
         {

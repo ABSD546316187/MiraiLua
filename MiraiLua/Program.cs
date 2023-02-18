@@ -17,7 +17,6 @@ namespace MiraiLua
 {
     class Program
     {
-        static public Util util = new Util();
         static public Lua lua = new Lua();
         static public MiraiBot bot;
         static public object o = new object();
@@ -126,11 +125,13 @@ namespace MiraiLua
             Util.PushFunction("api", "UploadImgBase64", lua, LFunctions.UploadImgBase64);
             Util.PushFunction("api", "At", lua, LFunctions.At);
 
+            Util.PushFunction("util", "Base64ToString", lua, LFunctions.Base64ToString);
+            Util.PushFunction("util", "StringToBase64", lua, LFunctions.StringToBase64);
             //加载模块
             ModuleLoader.LoadModule();
 
             lua.Pop(lua.GetTop());
-
+            
             //加载脚本
             LoadPlugins();
             //////////////////////////////////////
@@ -169,8 +170,6 @@ namespace MiraiLua
             //接收消息
             bot.MessageReceived.OfType<GroupMessageReceiver>().Subscribe(x =>
             {
-                string msg = x.MessageChain.GetPlainMessage();
-                
                 lock (o) {
                     lua.GetGlobal("api");
                     lua.GetField(-1, "OnReceiveGroup");
@@ -382,11 +381,6 @@ namespace MiraiLua
                     else
                         Util.Print("无效的命令. 要获取帮助请输入help.", Util.PrintType.INFO, ConsoleColor.Red);
                 }
-            }
-            var ms = ModuleLoader.m_hModule;
-            foreach(var m in ms)
-            {
-                ModuleLoader.FreeLibrary(m.p);
             }
             return 0;
         }

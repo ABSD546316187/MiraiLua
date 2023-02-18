@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace MiraiLua
 {
-    public static class ByteArray//数据结构类型，其中index 1表示从第1个字节开始读取
+    static class ByteArray//数据结构类型，其中index 1表示从第1个字节开始读取
     {
         static Lua lua = Program.lua;
         static void CreateMeta(Action f) {//该方法压入一个元表，f为添加项目

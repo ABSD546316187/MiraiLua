@@ -4,10 +4,10 @@ using System.Text;
 
 namespace MiraiLua
 {
-    class Util
+    public static class Util
     {
         public enum PrintType { INFO,WARNING,ERROR }
-        static public void Print(string t,PrintType type = PrintType.INFO,ConsoleColor c = ConsoleColor.Gray) {
+        static public void Print(object t,PrintType type = PrintType.INFO,ConsoleColor c = ConsoleColor.Gray) {
             Console.ForegroundColor = ConsoleColor.Gray;
             Console.Write(DateTime.Now.ToString("T") + " ");
             Console.Write("[");

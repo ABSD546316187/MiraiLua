@@ -60,6 +60,26 @@ namespace MiraiLua
             return 0;
         }
 
+        static public int Base64ToString(IntPtr p)
+        {
+            Lua lua = Lua.FromIntPtr(p);
+            string s = lua.CheckString(1);
+            byte[] c = Convert.FromBase64String(s);
+            s = Encoding.Default.GetString(c);
+            lua.PushString(s);
+            return 1;
+        }
+
+        static public int StringToBase64(IntPtr p)
+        {
+            Lua lua = Lua.FromIntPtr(p);
+            string s = lua.CheckString(1);
+            byte[] b = Encoding.Default.GetBytes(s);
+            s = Convert.ToBase64String(b);
+            lua.PushString(s);
+            return 1;
+        }
+
         static public int GetDir(IntPtr p)
         {
             Lua lua = Lua.FromIntPtr(p);
@@ -393,8 +413,9 @@ namespace MiraiLua
             Lua lua = Lua.FromIntPtr(p);
             string id = lua.CheckString(1);
             MessageChain mc = PackMsg(p,2);
-            
+
             MessageManager.SendGroupMessageAsync(id, mc);
+
             //Util.Print("发送消息： " + id + " :" + s);
             return 0;
         }
