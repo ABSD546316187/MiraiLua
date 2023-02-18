@@ -4,7 +4,7 @@ MiraiLua是基于 [Mirai.Net](https://github.com/SinoAHpx/Mirai.Net) / [mirai-ap
 ## 使用方法
 
 - 安装.NET7 (暂时需要这么做)
-- 最新版本的源码支持dll模块，若使用C#开发模块要求.Net Framework作为框架(反正只要是stdcall能用就行，具体的接口自行查阅源码，成熟后会放出)
+- 最新版本的源码支持dll模块，请使用.Net 7.0的框架进行开发。简易教程见下。
 - 配置主程序目录下的 `settings.xml`
   - `Address` 是 [mirai-api-http](https://github.com/project-mirai/mirai-api-http) 中配置的地址
   - `QQ` 是 [mirai](https://github.com/mamoe/mirai) 中配置的QQ号
@@ -204,6 +204,72 @@ print(ba)
 11:45:14 [信息] [ByteArray][474 字节]
 ```
 其中，目录中会生成t2.txt，其内容与t.txt一致
+
+- 模块基本框架
+```csharp
+using KeraLua;
+using MiraiLua;
+namespace Example_Module//这里名称随意，但最好不要与其他模块重复
+{
+    public class MiraiLuaModule//类名必须这么写
+    {
+        static public Data Init()//程序入口
+        {
+            var data = new Data();
+            data.WriteString("模块名称");
+            data.WriteString("版本");
+            data.WriteString("作者");//注意顺序
+            
+            //加入你自己的代码
+
+            return data;
+        }
+    }
+}
+```
+
+- 示例
+```csharp
+using KeraLua;
+using MiraiLua;
+namespace Example_Module
+{
+    public class MiraiLuaModule
+    {
+        static public Data Init()
+        {
+            var data = new Data();
+            data.WriteString("C# .net7示例模块");
+            data.WriteString("1.0");
+            data.WriteString("ABSD");
+
+            var lua = ModuleFunctions.GetLua();
+            Util.PushFunction("ExampleMod", "Test", lua, delegate (IntPtr p) {
+                Util.Print("Hello, MiraiLua!", Util.PrintType.WARNING, ConsoleColor.Red);
+                Util.Print("Hello, MiraiLua!", Util.PrintType.ERROR, ConsoleColor.Yellow);
+                Util.Print("Hello, MiraiLua!", Util.PrintType.INFO, ConsoleColor.Green);
+                Util.Print("Hello, MiraiLua!", Util.PrintType.WARNING, ConsoleColor.Blue);
+                Util.Print("Hello, MiraiLua!", Util.PrintType.ERROR, ConsoleColor.Magenta);
+                return 0;
+            });
+
+            Util.Print("Hello, MiraiLua!",Util.PrintType.INFO,ConsoleColor.Gray);
+            
+            return data;
+        }
+    }
+}
+```
+在以上的示例中，`Util.PushFunction()`用于压入自定义Lua函数，参数分别为函数所在的表(全局表为_G)、函数名称、Lua对象、C#方法。其中Lua对象需要使用`ModuleFunctions.GetLua()`获取，C#方法这里使用了匿名方法，当然你也可以在下面定义一个方法来代替。
+
+压入Lua的方法必须有一个IntPtr的参数(代表Lua对象的指针，使用`Lua.FromIntPtr(p)`来获取Lua对象)和一个int的返回值(代表对应Lua函数的返回值个数)。
+
+注意：
+- 模块的语言使用C#，并且需要在项目中引用主程序目录下的`MiraiLua.dll`与`KeraLua.dll`。
+- 命名空间随意，但必须有`MiraiLuaModule`的公开类与`Init()`的正确定义。
+- 最好不要使用NuGet包，因为必须要将编译后的相应dll放入主程序目录，显得杂乱。除非你有好的方法合并模块dll与外部dll，否则请考虑从源码方面并入。
+- Lua的灵活运用需要了解栈的概念以及学习如何进行Lua栈操作。
+- MiraiLua仅用于加载、调用模块，不对模块的具体内容负责。请自行甄别模块是否安全。
 
 ## 注意
 
