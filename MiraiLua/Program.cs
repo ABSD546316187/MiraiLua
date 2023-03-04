@@ -22,6 +22,7 @@ namespace MiraiLua
         static public object o = new object();
         static public string curFileDir { get; set; }
         static public char g = Path.DirectorySeparatorChar;
+        const string ver = "1.3";
         static void Test()
         {
             lua.GetGlobal("test");
@@ -90,7 +91,7 @@ namespace MiraiLua
         static async Task<int> Main(string[] args)
         {
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.Write("MiraiLua v1.3 RC-1 - Powered by ABSD\n");
+            Console.Write($"MiraiLua v{ver} - Powered by ABSD\n");
 
             Util.Print("正在启动MiraiLua...");
 
@@ -119,8 +120,11 @@ namespace MiraiLua
             Util.PushFunction("api", "OnReceiveGroup", lua, LFunctions.OnReceiveGroup);
             Util.PushFunction("api", "OnReceiveFriend", lua, LFunctions.OnReceiveFriend);
             Util.PushFunction("api", "OnReceiveTemp", lua, LFunctions.OnReceiveTemp);
+            Util.PushFunction("api", "HttpDownload", lua, LFunctions.HttpDownloadA);
             Util.PushFunction("api", "HttpGet", lua, LFunctions.HttpGetA);
             Util.PushFunction("api", "HttpPost", lua, LFunctions.HttpPostA);
+            Util.PushFunction("api", "UploadVoice", lua, LFunctions.UploadVoice);
+            Util.PushFunction("api", "UploadVoiceBase64", lua, LFunctions.UploadVoiceBase64);
             Util.PushFunction("api", "UploadImg", lua, LFunctions.UploadImg);
             Util.PushFunction("api", "UploadImgBase64", lua, LFunctions.UploadImgBase64);
             Util.PushFunction("api", "At", lua, LFunctions.At);

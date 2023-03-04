@@ -13,7 +13,7 @@ namespace MiraiLua
     static class ByteArray//数据结构类型，其中index 1表示从第1个字节开始读取
     {
         static Lua lua = Program.lua;
-        static void CreateMeta(Action f) {//该方法压入一个元表，f为添加项目
+        static public void CreateMeta(Action f) {//该方法压入一个元表，f为添加项目
             lua.NewMetaTable("ByteArray " + Guid.NewGuid().ToString());
             lua.PushCopy(-1);
             lua.SetField(-2, "__index");
@@ -538,24 +538,6 @@ namespace MiraiLua
             lua.SetMetaTable(1);
 
             return 0;
-        }
-
-        static public void PushByteArray(byte[] n)//快捷操作，将C#的byte[]压入并且转为lua的ByteArray
-        {
-            lua.NewUserData(0);
-
-            CreateMeta(delegate {
-                lua.NewTable();
-                for (int i = 1; i <= n.Length; i++)
-                {
-                    lua.PushInteger(i);
-                    lua.PushInteger(n[i - 1]);
-                    lua.SetTable(-3);
-                }
-                lua.SetField(-2, "data");
-            });
-            //元表的创建
-            lua.SetMetaTable(-2);
         }
 
         static public List<byte> GetDataArr(long ind,int length = 0,int udind = 1)//udind为Userdata在栈的位置

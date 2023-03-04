@@ -13,6 +13,8 @@ using Newtonsoft.Json;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Text;
+using System.Diagnostics;
+using System.Net;
 
 namespace MiraiLua
 {
@@ -262,19 +264,95 @@ namespace MiraiLua
 
             return 0;
         }
+
+
+        static public int HttpDownloadA(IntPtr p)
+        {
+            Lua lua = Lua.FromIntPtr(p);
+            string u = lua.CheckString(1);
+
+            string? onS = null;
+            string? onF = null;
+            if (lua.Type(2) == LuaType.Function)
+            {
+                onS = lua.ToString(2);
+                lua.PushCopy(2);
+                lua.SetGlobal(onS);
+            }
+            if (lua.Type(3) == LuaType.Function)
+            {
+                onF = lua.ToString(3);
+                lua.PushCopy(3);
+                lua.SetGlobal(onF);
+            }
+
+            HttpRequest.DownloadAsync(u, onS, onF, p);
+
+            return 0;
+        }
+
+        static public int UploadVoiceBase64(IntPtr p)
+        {
+            Lua lua = Lua.FromIntPtr(p);
+            lua.CheckType(1, LuaType.UserData);
+            try
+            {
+                string pic = "";
+                if (lua.Type(1) == LuaType.String)
+                {
+                    pic = lua.CheckString(1);
+                }
+                else if (lua.Type(1) == LuaType.UserData)
+                {
+                    var b = ByteArray.GetDataArr(1).ToArray();
+                    pic = Convert.ToBase64String(b);
+                }
+                var re = new MessageChainBuilder().ImageFromBase64(pic).Build();
+
+                var json = re.ToJsonString().Replace("[", "").Replace("]", "");
+
+                var rspObj = JsonConvert.DeserializeAnonymousType(json, new
+                {
+                    base64 = "",
+                });
+
+                lua.NewTable();
+                lua.PushString("Voice");
+                lua.SetField(-2, "Type");
+                lua.PushString(rspObj.base64);
+                lua.SetField(-2, "Base64");
+
+                return 1;
+            }
+            catch (Exception e)
+            {
+                Util.Print("上传语音失败：" + e.Message, Util.PrintType.ERROR, ConsoleColor.Red);
+                return 0;
+            }
+        }
+
         static public int UploadImgBase64(IntPtr p)
         {
             Lua lua = Lua.FromIntPtr(p);
             lua.CheckType(1, LuaType.UserData);
             try
             {
-                var b = ByteArray.GetDataArr(1).ToArray();
-                string pic = Convert.ToBase64String(b);
-
+                string pic = "";
+                if(lua.Type(1) == LuaType.String)
+                {
+                    pic = lua.CheckString(1);
+                }
+                else if (lua.Type(1) == LuaType.UserData)
+                {
+                    var b = ByteArray.GetDataArr(1).ToArray();
+                    pic = Convert.ToBase64String(b);
+                }
                 var re = new MessageChainBuilder().ImageFromBase64(pic).Build();
-                var json = re.ToJsonString().Replace("[", "").Replace("]","");
 
-                var rspObj = JsonConvert.DeserializeAnonymousType(json, new {
+                var json = re.ToJsonString().Replace("[", "").Replace("]", "");
+
+                var rspObj = JsonConvert.DeserializeAnonymousType(json, new
+                {
                     base64 = "",
                 });
 
@@ -284,23 +362,96 @@ namespace MiraiLua
                 lua.PushString(rspObj.base64);
                 lua.SetField(-2, "Base64");
 
-                //MessageManager.SendGroupMessageAsync("616319393", image);
-                //Util.Print(image.ToString());
-                /*
-                lua.NewTable();
-
-                lua.PushString("Image");
-                lua.SetField(-2, "Type");
-                lua.PushString(re);
-                lua.SetField(-2, "ImageId");
-
-                return 1;
-                */
                 return 1;
             }
             catch (Exception e)
             {
                 Util.Print("上传图片失败：" + e.Message, Util.PrintType.ERROR, ConsoleColor.Red);
+                return 0;
+            }
+        }
+
+        /*
+        static public int UploadVoiceAmr(IntPtr p)
+        {
+            Lua lua = Lua.FromIntPtr(p);
+            //取得ffmpeg.exe的物理路径
+            string sourceFile = lua.CheckString(1);
+            string ffmpeg = AppDomain.CurrentDomain.BaseDirectory + "ffmpeg.exe";
+            if (!File.Exists(ffmpeg))
+            {
+                Util.Print("上传语音失败：找不到格式转换程序", Util.PrintType.ERROR, ConsoleColor.Red);
+                return 0;
+            }
+
+            var g = Program.g;
+            if (!Directory.Exists($".{g}temp"))
+                Directory.CreateDirectory($".{g}temp");
+
+            string filen = Guid.NewGuid() + ".amr";
+            string destFile = AppDomain.CurrentDomain.BaseDirectory + $"temp\\{filen}";
+
+            ProcessStartInfo FilestartInfo = new ProcessStartInfo(ffmpeg);
+            FilestartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            FilestartInfo.Arguments = " -i " + sourceFile + " -y -abort_on empty_output -v quiet -ab 12.2k -ar 8000 -ac 1 " + destFile;
+
+            //转换
+            var t = Process.Start(FilestartInfo);
+            t.WaitForExit();
+
+            if (t.ExitCode != 0)
+            {
+                Util.Print("上传语音失败。错误代码：" + t.ExitCode.ToString(), Util.PrintType.ERROR, ConsoleColor.Red);
+                return 0;
+            }
+
+            try
+            {
+                var result = FileManager.UploadVoiceAsync(destFile).Result;
+                var Id = result.Item1;
+
+                lua.NewTable();
+
+                lua.PushString("Voice");
+                lua.SetField(-2, "Type");
+                lua.PushString(Id);
+                lua.SetField(-2, "VoiceId");
+
+                File.Delete(destFile);
+
+                return 1;
+            }
+            catch (Exception e)
+            {
+                Util.Print("上传语音失败：" + e.Message, Util.PrintType.ERROR, ConsoleColor.Red);
+                return 0;
+            }
+        }
+        */
+        
+
+        static public int UploadVoice(IntPtr p)
+        {
+            Lua lua = Lua.FromIntPtr(p);
+            //取得ffmpeg.exe的物理路径
+            string sourceFile = lua.CheckString(1);
+            try
+            {
+                var result = FileManager.UploadVoiceAsync(sourceFile).Result;
+                var Id = result.Item1;
+
+                lua.NewTable();
+
+                lua.PushString("Voice");
+                lua.SetField(-2, "Type");
+                lua.PushString(Id);
+                lua.SetField(-2, "VoiceId");
+
+                return 1;
+            }
+            catch (Exception e)
+            {
+                Util.Print("上传语音失败：" + e.Message, Util.PrintType.ERROR, ConsoleColor.Red);
                 return 0;
             }
         }
@@ -385,6 +536,27 @@ namespace MiraiLua
                             string imgid = lua.ToString(-1);
                             lua.Remove(-1);
                             image.ImageId = imgid;
+                        }
+                        mc += image;
+                        s += "[" + type + "]";
+                    }
+                    else if (type == "Voice")
+                    {
+                        var image = new VoiceMessage();
+                        lua.GetField(i, "VoiceId");
+                        if (lua.Type(-1) == LuaType.Nil)
+                        {
+                            lua.Remove(-1);
+                            lua.GetField(i, "Base64");
+                            string base64 = lua.ToString(-1);
+                            lua.Remove(-1);
+                            image.Base64 = base64;
+                        }
+                        else
+                        {
+                            string imgid = lua.ToString(-1);
+                            lua.Remove(-1);
+                            image.VoiceId = imgid;
                         }
                         mc += image;
                         s += "[" + type + "]";

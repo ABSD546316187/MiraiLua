@@ -68,5 +68,28 @@ namespace MiraiLua
             tempStr = tempStr.Substring(0, tempStr.IndexOf(nextStr));
             return tempStr;
         }
+
+        /// <summary>
+        /// 快捷操作，将C#的byte[]压入并且转为lua的ByteArray
+        /// </summary>
+        /// <param name="lua">Lua对象</param>
+        /// <param name="n">字节数组</param>
+        static public void PushByteArray(Lua lua, byte[] n)
+        {
+            lua.NewUserData(0);
+
+            ByteArray.CreateMeta(delegate {
+                lua.NewTable();
+                for (int i = 1; i <= n.Length; i++)
+                {
+                    lua.PushInteger(i);
+                    lua.PushInteger(n[i - 1]);
+                    lua.SetTable(-3);
+                }
+                lua.SetField(-2, "data");
+            });
+            //元表的创建
+            lua.SetMetaTable(-2);
+        }
     }
 }

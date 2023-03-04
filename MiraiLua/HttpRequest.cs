@@ -8,6 +8,7 @@ using System.Text.Json;
 using System.Net.Http;
 using Newtonsoft.Json;
 using System.Reflection.Metadata;
+using System.IO;
 
 namespace MiraiLua
 {
@@ -109,7 +110,56 @@ namespace MiraiLua
                 //Util.Print("HttpGet失败：" + e.Message, Util.PrintType.ERROR, ConsoleColor.Red);
             }
         }
+        public static async void DownloadAsync(string u, string? k1, string? k2, IntPtr p)
+        {
+            try
+            {
+                var http = new HttpClient();
+                var request = new HttpRequestMessage(HttpMethod.Get, u);
+                var response = await http.SendAsync(request);
+                response.EnsureSuccessStatusCode();
+                var stream = response.Content.ReadAsStream();
+
+                byte[] buffer = new byte[stream.Length];
+                stream.Read(buffer, 0, buffer.Length);
+                stream.Seek(0, SeekOrigin.Begin);
+                if (k1 != null)
+                {
+                    lock (Program.o)
+                    {
+                        KeraLua.Lua lua = KeraLua.Lua.FromIntPtr(p);
+                        lua.GetGlobal(k1);
+                        Util.PushByteArray(lua, buffer);
+                        lua.PCall(1, 0, 0);
+                        if (lua.GetTop() >= 1)
+                            Util.Print(lua.ToString(-1), Util.PrintType.ERROR, ConsoleColor.Red);
+                        lua.Pop(lua.GetTop());
+                        lua.PushNil();
+                        lua.SetGlobal(k1);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                if (k2 != null)
+                {
+                    lock (Program.o)
+                    {
+                        KeraLua.Lua lua = KeraLua.Lua.FromIntPtr(p);
+                        lua.GetGlobal(k2);
+                        lua.PushString(e.Message);
+                        lua.PCall(1, 0, 0);
+                        lua.Pop(lua.GetTop());
+                        //Util.Print(k);
+                        lua.PushNil();
+                        lua.SetGlobal(k2);
+                    }
+                }
+            }
+        }
     }
+
+
     public class UntrustedCertClientFactory : DefaultHttpClientFactory
     {
         public override HttpMessageHandler CreateMessageHandler()
