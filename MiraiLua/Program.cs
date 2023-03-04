@@ -167,6 +167,7 @@ namespace MiraiLua
             catch(Exception e)
             {
                 Util.Print(String.Format("发生错误：{0:G}\n请检查settings.xml是否存在且合法.", e.Message));
+                Console.WriteLine("按下回车键关闭程序");
                 Console.ReadLine();
                 return 0;
             }
@@ -332,6 +333,7 @@ namespace MiraiLua
 
             while (true)
             {
+                Console.Write("> ");
                 string cmd = Console.ReadLine();
                 string[] cargs = cmd.Split(" ");
                 lock (o)
