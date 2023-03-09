@@ -334,7 +334,7 @@ namespace MiraiLua
         static public int UploadImgBase64(IntPtr p)
         {
             Lua lua = Lua.FromIntPtr(p);
-            lua.CheckType(1, LuaType.UserData);
+            // lua.CheckType(1, LuaType.UserData);
             try
             {
                 string pic = "";
