@@ -334,7 +334,7 @@ namespace MiraiLua
         static public int UploadImgBase64(IntPtr p)
         {
             Lua lua = Lua.FromIntPtr(p);
-            // lua.CheckType(1, LuaType.UserData);
+            
             try
             {
                 string pic = "";
@@ -428,8 +428,6 @@ namespace MiraiLua
             }
         }
         */
-        
-
         static public int UploadVoice(IntPtr p)
         {
             Lua lua = Lua.FromIntPtr(p);
@@ -465,9 +463,6 @@ namespace MiraiLua
                 var result = FileManager.UploadImageAsync(lua.CheckString(1)).Result;
                 var imageId = result.Item1;
 
-
-                //MessageManager.SendGroupMessageAsync("616319393", image);
-                //Util.Print(image.ToString());
                 lua.NewTable();
 
                 lua.PushString("Image");
@@ -566,7 +561,6 @@ namespace MiraiLua
                         lua.GetField(i, "Target");
                         string tar = lua.ToString(-1);
                         lua.Remove(-1);
-
 
                         var atm = new AtMessage(tar);
 

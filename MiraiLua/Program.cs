@@ -333,7 +333,6 @@ namespace MiraiLua
 
             while (true)
             {
-                Console.Write("> ");
                 string cmd = Console.ReadLine();
                 string[] cargs = cmd.Split(" ");
                 lock (o)
